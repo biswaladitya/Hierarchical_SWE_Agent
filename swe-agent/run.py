@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from sweagent import CONFIG_DIR
+from sweagent.agent.agent_org import OrgAgent
 from sweagent.utils.log import add_file_handler, get_logger
 
 try:
@@ -318,7 +319,7 @@ class Main:
         if args.print_config:
             logger.info(f"📙 Arguments: {args.dumps_yaml()}")
         self.args = args
-        self.agent = Agent("primary", args.agent)
+        self.agent = OrgAgent("primary", args.agent)
         self.env = SWEEnv(args.environment)
         self._save_arguments()
         default_hooks = [
