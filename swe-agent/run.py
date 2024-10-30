@@ -376,6 +376,7 @@ class Main:
             setup_args["box"] = challenge.get("server_name")
             setup_args["port"] = challenge.get("port")
             setup_args["server_description"] = challenge.get("server_description")
+        # This is the key entry point where the agent is started. From here we could build some new strategies.
         info, trajectory = self.agent.run(
             setup_args=setup_args,
             env=self.env,
@@ -508,8 +509,8 @@ def get_args(args=None) -> ScriptArguments:
         skip_existing=True,
         agent=AgentArguments(
             model=ModelArguments(
-                model_name="gpt4",
-                total_cost_limit=0.0,
+                model_name="gpt-4o-mini",
+                total_cost_limit=.15,
                 per_instance_cost_limit=3.0,
                 temperature=0.0,
                 top_p=0.95,
