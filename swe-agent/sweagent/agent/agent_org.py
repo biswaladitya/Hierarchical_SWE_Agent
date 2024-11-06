@@ -13,10 +13,12 @@ class OrgAgent():
 
     # make every method in Agent class available in OrgAgent class
     def __getattr__(self, name):
+        if name in self.__dict__.keys():
+            return self.__dict__[name]
         return getattr(self.agent, name)
 
     def __setattr__(self, name, value):
-        if name in self.__dict__.keys():
+        if name in self.__dict__.keys() or name == "agent":
             self.__dict__[name] = value
         else:
             setattr(self.agent, name, value)
