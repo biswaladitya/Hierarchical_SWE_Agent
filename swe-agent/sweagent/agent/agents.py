@@ -432,7 +432,7 @@ class Agent:
                             "agent": self.name,
                             "content": demonstration,
                             "is_demo": True,
-                            "role": "user",
+                            "role": "system",
                         },
                     )
 
@@ -497,9 +497,7 @@ class Agent:
                 for k, v in self.command_patterns.items()
                 if k in self.config.multi_line_command_endings or k == self.config.submit_command
             }
-            patterns += {
-                k: v for k, v in self.subroutine_patterns.items() if k in self.config.multi_line_command_endings
-            }
+            patterns += {k: v for k, v in self.subroutine_patterns.items() if k in self.config.multi_line_command_endings}
         elif pattern_type == "multi_line_no_subroutines":
             patterns = {k: v for k, v in self.command_patterns.items() if k in self.config.multi_line_command_endings}
         else:
@@ -581,9 +579,7 @@ class Agent:
                             )
                         )
             else:
-                parsed_action.append(
-                    SubAction({"agent": self.name, "action": rem_action, "cmd_name": None, "args": ""})
-                )
+                parsed_action.append(SubAction({"agent": self.name, "action": rem_action, "cmd_name": None, "args": ""}))
                 rem_action = ""
         return parsed_action
 
@@ -668,7 +664,9 @@ class Agent:
         # Determine observation template based on what prior observation was
         if self.history[-1]["role"] == "system" or self.history[-1].get("is_demo", False):
             # Show instance template if prev. obs. was initial system message
-            templates = [self.config.instance_template]
+            templates = [
+                self.config.instance_template,
+            ]
             if self.config.strategy_template is not None:
                 templates.append(self.config.strategy_template)
         elif observation is None or observation.strip() == "":
@@ -1039,6 +1037,7 @@ class Agent:
         Returns:
             If return_type is "info_trajectory", returns a tuple of
             the info dictionary and the trajectory (list of dictionaries).
+            If return type is "summary" this will summarize the chat result for the organizational agent to continue
         """
         assert env.record is not None
         assert env.container_obj is not None
@@ -1055,14 +1054,24 @@ class Agent:
         self._env = env
         self.info = AgentInfo()
         self.traj_dir = traj_dir
-
+        if "task" in setup_args:
+            self.history.append(
+                {
+                    "agent": "primary",
+                    "content": setup_args["task"],
+                    "role": "system",
+                    "is_demo": False,
+                }
+            )
         self.logger.info("Trajectory will be saved to %s", self.traj_path)
 
         # Run action/observation loop
         for hook in self.hooks:
             hook.on_run_start()
         done = False
-        while not done:
+        i = 0
+        while not done and i < 30:
+            i += 1
             observation, done = self._run_step(observation)
             self.save_trajectory()
             if done:
@@ -1076,4 +1085,18 @@ class Agent:
             return self.info
         if return_type == "info_trajectory":
             return self.info, self.trajectory
+        if return_type == "summary":
+
+            self.history.append(
+                {
+                    "role": "system",
+                    "content": "Please summarize the history of this instance and the findings which are relevant the task at hand and other agents that will continue to work on it."
+                    f"The task for this was: {setup_args['task']}"
+                    "Use precise language and provide a clear and concise summary.",
+                    "agent": "primary",
+                }
+            )
+            summary = self.model.query(self.local_history)
+            return self.info, self.trajectory, summary
+
         return self.trajectory[-1][return_type]
