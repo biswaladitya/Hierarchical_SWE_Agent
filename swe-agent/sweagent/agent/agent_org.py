@@ -23,6 +23,8 @@ Then write down the next specific sub-task that needs to be done and choose an a
 This subtask is only one step in the process of solving the issue. After the called agent will return the result, you can decide on the next subtask and continue to call agents (the same or others) until the issue is solved.
 If you think the most recent interaction appropriately solves the task, you can end the conversation by writing DONE. Otherwise please always provide a new subtask to be done and call a relevant agent to run it.
 """
+# TODO Optimize this prompt
+# TODO which kind of agents do we need that the org agent can work with?
 
 
 class OrgAgent:
@@ -142,6 +144,7 @@ class OrgAgent:
                     # TODO add a check if the task is done and what then?
                     # TODO implement a collective AgentInfo object that collects the info from all agents: Every Agent tool call will return that.
                     # We have to look into how to combine those. Could be helpful for stats or something
+                    # Info contains stuff like how many tokens have been called, estimated price, etc.
                     combined_info = recent_info
                     # TODO handle trajectory. Is that necessary? What is it, how to combine, what for?
                     combined_trajectory = recent_trajectory
