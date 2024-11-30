@@ -1,6 +1,6 @@
 # @yaml
 # signature: |-
-#   replace <start_line>:<end_line>
+#   edit <start_line>:<end_line>
 #   <replacement_text>
 #   end_of_edit
 # end_name: end_of_edit
@@ -101,7 +101,7 @@ edit() {
         export CURRENT_LINE=$(( (line_count / 2) + start_line )) # Set to "center" of edit
         export WINDOW=$((line_count + 10)) # Show +/- 5 lines around edit
 
-        echo "This is how your edit would have looked if applied"
+        echo "This is how your edit would have looked if applied. Please reason how this differentiates from the intended output. What do you need to change within the edit to not run into the same syntax error(s)?"
         echo "-------------------------------------------------"
         _constrain_line
         _print
@@ -124,7 +124,7 @@ edit() {
         export CURRENT_LINE=$original_current_line
         export WINDOW=$original_window
 
-        echo "Your changes have NOT been applied. Please fix your edit command and try again."
+        echo "Your changes have NOT been applied. Please change your edit command and try again."
         echo "You either need to 1) Specify the correct start/end line arguments or 2) Correct your edit code."
         echo "3) Make sure that the open file is the file you wanted to edit."
         echo "DO NOT re-run the same failed edit command. Running it again will lead to the same error."

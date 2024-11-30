@@ -34,7 +34,7 @@ instance_template: |-
 
   INSTRUCTIONS:
   The current status of the project is: {current_status}
-  Please contribute to the solving of the issue by followin your task: {task}
+  Please contribute to the solving of the issue by following your task: {task}
   Please do not solve the total issue but focus on your task and submit the result to the organizing agent when reaching the definition of done: {definition_of_done}
   
   Your terminal session has started and you're in the repository's root directory. You can use any bash commands or the special interface to help you. Edit all the files you need to and run any checks or tests that you want.
