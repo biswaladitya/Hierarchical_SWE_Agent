@@ -7,6 +7,7 @@ from openai import OpenAI
 from sweagent.agent.agents import AgentArguments, Agent
 from sweagent.agent.models import APIStats
 from sweagent.environment.swe_env import SWEEnv
+from sweagent.types import TrajectoryStep
 from sweagent.utils.config import keys_config
 
 org_agent_prompt = """
@@ -108,6 +109,11 @@ class OrgAgent:
             }
         ]
 
+        recent_info = {
+            "model_stats": init_model_stats or APIStats(),
+        }
+
+        combined_trajectory = []
         while True:
             chat = client.chat.completions.create(
                 messages=messages,
@@ -117,6 +123,13 @@ class OrgAgent:
             choice = chat.choices[0]
             messages.append(choice.message)
             print("ORGANIZATION AGENT", choice.message.content)
+            recent_info["model_stats"] += APIStats(
+                api_calls = 1 ,
+                tokens_sent= chat.usage.prompt_tokens ,
+                tokens_received = chat.usage.completion_tokens,
+                instance_cost = (chat.usage.prompt_tokens * 0.00000015 + chat.usage.completion_tokens * 0.0000006),
+                total_cost= (chat.usage.prompt_tokens * 0.00000015 + chat.usage.completion_tokens * 0.0000006),
+            )
             if choice.finish_reason == "tool_calls":
                 tool_calls = choice.message.tool_calls
                 for tool_call in tool_calls:
@@ -127,17 +140,27 @@ class OrgAgent:
                     setup_args["current_status"] = arguments["current_status"]
                     setup_args["task"] = arguments["task"]
                     setup_args["definition_of_done"] = arguments["definition_of_done"]
-
+                    combined_trajectory.append(TrajectoryStep(
+                        {
+                            "action": str(arguments),
+                            "observation": choice.message.content,
+                            "response": None,
+                            "state": None,
+                            "thought": None,
+                            "execution_time": 0,
+                        },
+                    ))
                     recent_info, recent_trajectory, summary = agent_to_call["agent"].run(
                         setup_args,
                         env,
                         observation=observation,
                         traj_dir=traj_dir,
                         return_type="summary",
-                        init_model_stats=init_model_stats,
+                        init_model_stats=recent_info['model_stats'],
                     )
+                    recent_info["model_stats"] = APIStats(**recent_info["model_stats"])
                     print("TOOL AGENT", summary)
-
+                    combined_trajectory.extend(recent_trajectory)
                     messages.append({"role": "tool", "content": summary, "tool_call_id": tool_call.id})
             if chat.choices[-1].finish_reason == "stop":
                 if "DONE" in chat.choices[-1].message.content:

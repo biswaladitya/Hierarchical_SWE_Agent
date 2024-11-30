@@ -14,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/swe-agent/run.py" />
-    <option name="PARAMETERS" value="--model_name gpt-4o-mini --data_path https://github.com/julianstrietzel/Quanda/issues/1 --config_file $PROJECT_DIR$/swe-agent/config/default_org_agent.yaml --per_instance_cost_limit 0.15 --base_commit julianstrietzel-patch-1 --skip_existing=False" />
+    <option name="PARAMETERS" value="--model_name gpt-4o-mini --data_path https://github.com/julianstrietzel/Quanda/issues/1 --config_file $PROJECT_DIR$/swe-agent/config/default_org_agent.yaml --per_instance_cost_limit 3 --base_commit julianstrietzel-patch-1 --skip_existing=False" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
