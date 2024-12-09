@@ -45,10 +45,10 @@ class OrgAgent:
         self,
         setup_args: dict[str, Any],
         env: SWEEnv,
-        observation: str | None = None,
-        traj_dir: Path | None = None,
+        observation: str = None,
+        traj_dir: Path = None,
         return_type: str = "info_trajectory",
-        init_model_stats: APIStats | None = None,
+        init_model_stats: APIStats = None,
     ):
         """
         Run an organization agent to organize a team of agents to solve a task within a project.
@@ -109,7 +109,7 @@ class OrgAgent:
             }
         ]
 
-        recent_info = {
+        combined_info = {
             "model_stats": init_model_stats or APIStats(),
         }
 
@@ -123,7 +123,7 @@ class OrgAgent:
             choice = chat.choices[0]
             messages.append(choice.message)
             print("ORGANIZATION AGENT", choice.message.content)
-            recent_info["model_stats"] += APIStats(
+            combined_info["model_stats"] += APIStats(
                 api_calls = 1 ,
                 tokens_sent= chat.usage.prompt_tokens ,
                 tokens_received = chat.usage.completion_tokens,
@@ -156,21 +156,19 @@ class OrgAgent:
                         observation=observation,
                         traj_dir=traj_dir,
                         return_type="summary",
-                        init_model_stats=recent_info['model_stats'],
+                        init_model_stats=combined_info['model_stats'],
                     )
-                    recent_info["model_stats"] = APIStats(**recent_info["model_stats"])
+                    combined_info["model_stats"] = APIStats(**recent_info["model_stats"])
                     print("TOOL AGENT", summary)
+                    # TODO handle trajectory. Is that necessary? What is it, how to combine, what for? Kinda done by the following line
                     combined_trajectory.extend(recent_trajectory)
                     messages.append({"role": "tool", "content": summary, "tool_call_id": tool_call.id})
             if chat.choices[-1].finish_reason == "stop":
                 if "DONE" in chat.choices[-1].message.content:
-                    # TODO add a check if the task is done and what then?
+                    # TODO add a check if the task is done and what then? Calling the env submit function?
                     # TODO implement a collective AgentInfo object that collects the info from all agents: Every Agent tool call will return that.
                     # We have to look into how to combine those. Could be helpful for stats or something
                     # Info contains stuff like how many tokens have been called, estimated price, etc.
-                    combined_info = recent_info
-                    # TODO handle trajectory. Is that necessary? What is it, how to combine, what for?
-                    combined_trajectory = recent_trajectory
                     break
 
         return combined_info, combined_trajectory

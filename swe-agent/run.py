@@ -319,7 +319,7 @@ class Main:
         if args.print_config:
             logger.info(f"📙 Arguments: {args.dumps_yaml()}")
         self.args = args
-        self.agent = OrgAgent("primary", args.agent)
+        self.agent = OrgAgent("primary", args.agent) if 'org_agent' in str(args.agent.config_file) else Agent("primary", args.agent)
         self.env = SWEEnv(args.environment)
         self._save_arguments()
         default_hooks = [

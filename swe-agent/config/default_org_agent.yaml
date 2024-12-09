@@ -32,11 +32,6 @@ instance_template: |-
   ISSUE:
   {issue}
 
-  INSTRUCTIONS:
-  The current status of the project is: {current_status}
-  Please contribute to the solving of the issue by following your task: {task}
-  Please do not solve the total issue but focus on your task and submit the result to the organizing agent when reaching the definition of done: {definition_of_done}
-  
   Your terminal session has started and you're in the repository's root directory. You can use any bash commands or the special interface to help you. Edit all the files you need to and run any checks or tests that you want.
   Remember, YOU CAN ONLY ENTER ONE COMMAND AT A TIME. You should always wait for feedback after every command.
   When you're satisfied with all of the changes you've made, you can submit your changes to the code base by simply running the submit command.
@@ -64,7 +59,12 @@ instance_template: |-
   6. When editing files, it is easy to accidentally specify a wrong line number or to write code with incorrect indentation. Always check the code after you issue an edit to make sure that it reflects what you wanted to accomplish. If it didn't, issue another command to fix it.
 
   7. It may be necessary to install the repository from source before you can run code. Please think about how to install the environment from the repository directory if you need to do so.
-
+  
+  INSTRUCTIONS:
+  The current status of the project is: {current_status}
+  Please contribute to the solving of the issue by following your task: {task}
+  Please do not solve the total issue but focus on your task and submit the result to the organizing agent when reaching the definition of done: {definition_of_done}
+  
 
   (Open file: {open_file})
   (Current directory: {working_dir})
