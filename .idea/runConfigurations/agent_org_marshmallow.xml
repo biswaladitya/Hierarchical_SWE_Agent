@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="agent_organization_run" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="agent_org_marshmallow" type="PythonConfigurationType" factoryName="Python">
     <module name="neuralforge" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
@@ -14,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/swe-agent/run.py" />
-    <option name="PARAMETERS" value="--model_name gpt-4o-mini --data_path https://github.com/julianstrietzel/Quanda/issues/1 --config_file $PROJECT_DIR$/swe-agent/config/default_org_agent.yaml --per_instance_cost_limit 3 --base_commit julianstrietzel-patch-1 --skip_existing=False" />
+    <option name="PARAMETERS" value="--model_name gpt-4o-mini --per_instance_cost_limit 1.00 --config_file ./config/default_org_agent.yaml --instance_filter marshmallow-code__marshmallow-1359 --skip_existing=False" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
