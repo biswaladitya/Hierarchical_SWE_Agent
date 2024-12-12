@@ -531,7 +531,13 @@ class Agent:
                 if pre_action.strip():
                     parsed_action.append(pre_action)
                 if match_action.strip():
-                    eof = first_match.group(3).strip()
+                    try:
+                        eof = first_match.group(3).strip()
+                    except (IndexError, AttributeError) as e:
+                        self.logger.error(f"Error extracting EOF: {e}")
+                        self.logger.error(f"first_match: {first_match}")
+                        self.logger.error(f"action: {action}")
+                        raise e
                     if not match_action.split("\n")[0].strip().endswith(f"<< '{eof}'"):
                         guarded_command = match_action[first_match.start() :]
                         first_line = guarded_command.split("\n")[0]
