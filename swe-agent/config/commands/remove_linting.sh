@@ -1,22 +1,15 @@
 # @yaml
 # signature: |-
-#   edit <start_line>:<end_line>
-#   <replacement_text>
-#   end_of_edit
-# end_name: end_of_edit
-# docstring: replaces lines <start_line> through <end_line> (exclusive) in the open file with the given text (not necessarily the same length). The replacement text is terminated by a line with only end_of_edit on it. All of the <replacement text> will be entered, so make sure your indentation is formatted properly. Python files will be checked for syntax errors after the edit. If the system detects a syntax error, the edit will not be executed. Remember that the lines are replaced by the new content, so make sure to incorporate all previously existing lines which are still required in your edit. Check for indentation. Remember that line numbers can change due to an edit.
+#   remove <start_line>:<end_line>
+# docstring: removes lines <start_line> through <end_line> (exclusive) in the open file.
 # arguments:
 #   start_line:
 #     type: integer
-#     description: the line number to start the edit at
+#     description: The first line to be removed
 #     required: true
 #   end_line:
 #     type: integer
-#     description: the line number to end the edit at (exclusive)
-#     required: true
-#   replacement_text:
-#     type: string
-#     description: the text to replace the current selection with
+#     description: The line after the last line to be removed
 #     required: true
 edit() {
     if [ -z "$CURRENT_FILE" ]
@@ -30,18 +23,18 @@ edit() {
 
     if [ -z "$start_line" ] || [ -z "$end_line" ]
     then
-        echo "Usage: replace <start_line>:<end_line>"
+        echo "Usage: remove <start_line>:<end_line>"
         return
     fi
 
     local re='^[0-9]+$'
     if ! [[ $start_line =~ $re ]]; then
-        echo "Usage: replace <start_line>:<end_line>"
+        echo "Usage: remove <start_line>:<end_line>"
         echo "Error: start_line must be a number"
         return
     fi
     if ! [[ $end_line =~ $re ]]; then
-        echo "Usage: replace <start_line>:<end_line>"
+        echo "Usage: remove <start_line>:<end_line>"
         echo "Error: end_line must be a number"
         return
     fi
@@ -55,18 +48,13 @@ edit() {
 
     local line_count=0
     local replacement=()
-    while IFS= read -r line
-    do
-        replacement+=("$line")
-        ((line_count++))
-    done
 
     # Create a backup of the current file
     cp "$CURRENT_FILE" "/root/$(basename "$CURRENT_FILE")_backup"
 
     # Read the file line by line into an array
     mapfile -t lines < "$CURRENT_FILE"
-    local new_lines=("${lines[@]:0:$start_line}" "${replacement[@]}" "${lines[@]:$((end_line))}")
+    local new_lines=("${lines[@]:0:$start_line}" "${lines[@]:$((end_line))}")
     # Write the new stuff directly back into the original file
     printf "%s\n" "${new_lines[@]}" >| "$CURRENT_FILE"
 
@@ -85,9 +73,9 @@ edit() {
         _constrain_line
         _print
 
-        echo "File updated. Please review the changes and make sure they are correct (correct indentation, no duplicate lines, etc). Edit the file again if necessary (this will be based on the above file)."
+        echo "File updated. Please review the changes. Edit the file again if necessary (this will be based on the updated file)."
     else
-        echo "Your proposed edit has introduced new syntax error(s). Please read this error message carefully and then retry editing the file."
+        echo "Your proposed deletion has introduced new syntax error(s). Please read this error message carefully and then retry editing the file."
         echo ""
         echo "ERRORS:"
         echo "$lint_output"
@@ -124,9 +112,8 @@ edit() {
         export CURRENT_LINE=$original_current_line
         export WINDOW=$original_window
 
-        echo "Your changes have NOT been applied. Please change your edit command and try again."
-        echo "You either need to 1) Specify the correct start/end line arguments or 2) Correct your edit code."
-        echo "3) Make sure that the open file is the file you wanted to edit."
+        echo "Your changes have NOT been applied. Please change your delete command and try again."
+        echo "You either need to 1) Specify the correct start/end line arguments or 2) Make sure that the open file is the file you wanted to edit."
         echo "DO NOT re-run the same failed edit command. Running it again will lead to the same error."
     fi
 

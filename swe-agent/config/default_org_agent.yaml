@@ -56,7 +56,7 @@ instance_template: |-
 
   5. Always make sure to look at the currently open file and the current working directory (which appears right after the currently open file). The currently open file might be in a different directory than the working directory! Note that some commands, such as 'create', open files, so they might change the current  open file.
 
-  6. When editing files, it is easy to accidentally specify a wrong line number or to write code with incorrect indentation. Always check the code after you issue an edit to make sure that it reflects what you wanted to accomplish. If it didn't, issue another command to fix it.
+  6. When editing files, it is easy to accidentally specify a wrong line number or to write code with incorrect indentation. Always check the code after you issue an edit to make sure that it reflects what you wanted to accomplish. If it didn't, focus on line numbers and try to increase the end_line. Remember that your changes might hae been made and you have to change the command accordingly.
 
   7. It may be necessary to install the repository from source before you can run code. Please think about how to install the environment from the repository directory if you need to do so.
   
@@ -115,4 +115,4 @@ command_files:
 parse_command: ParseCommandDetailed
 history_processor: Last5Observations
 demonstrations:
-- trajectories/demonstrations/replay__marshmallow-code__marshmallow-1867__default__t-0.20__p-0.95__c-2.00__install-1___install_from_source/marshmallow-code__marshmallow-1867.traj
+- trajectories/demonstrations/replay__marshmallow-code__marshmallow-1867__default_org_agent__t-0.20__p-0.95__c-2.00__install-1___install_from_source/marshmallow-code__marshmallow-1867.traj
