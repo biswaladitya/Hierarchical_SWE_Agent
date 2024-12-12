@@ -986,7 +986,11 @@ class Agent:
         observations: list[str | None] = list()
         execution_t0 = time.perf_counter()
         for sub_action in self.split_actions(run_action):
-            observation, done = self._run_sub_action(sub_action)
+            if sub_action["cmd_name"] == self.config.submit_command or 'submit' == sub_action['action'][:6]:
+                done = True
+            if not done or self.name == 'primary':
+                # primary is the only agent that can submit as it is not part of the org framework
+                observation, done = self._run_sub_action(sub_action)
             # If the last sub-action is done, the observation is not
             # appended.
             if done:
@@ -1092,12 +1096,14 @@ class Agent:
                 {
                     "role": "system",
                     "content": "Please summarize the history of this instance and the findings which are relevant the task at hand and other agents that will continue to work on it."
-                    f"The task for this was: {setup_args['task']}"
+                               + f'This agent has been stopped due to to many iterations.' if (i >= 30) and not done else ''
+                    + f"The task for this was: {setup_args['task']}"
                     "Use precise language and provide a clear and concise summary.",
                     "agent": "primary",
                 }
             )
             summary = self.model.query(self.local_history)
+            self.logger.info(f"SUMMARY\n{summary}")
             return self.info, self.trajectory, summary
 
         return self.trajectory[-1][return_type]

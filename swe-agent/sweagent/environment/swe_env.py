@@ -595,7 +595,7 @@ class SWEEnv(gym.Env):
             observation = "Exited"
             info["exit_status"] = action
             return observation, 0, True, info
-        if action in {"exit_context", "exit_cost", "exit_error", "exit_format", "exit_api"}:
+        if action in {"exit_context", "exit_cost", "exit_error", "exit_format", "exit_api", 'exit_orga'}:
             try:
                 observation = self.communicate(input="submit")
                 submission = self.get_submission(observation)

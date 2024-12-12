@@ -184,6 +184,7 @@ class OrgAgent:
                     # TODO implement a collective AgentInfo object that collects the info from all agents: Every Agent tool call will return that.
                     # We have to look into how to combine those. Could be helpful for stats or something
                     # Info contains stuff like how many tokens have been called, estimated price, etc.
+                    env.step('exit_orga')
                     break
 
         return combined_info, combined_trajectory
