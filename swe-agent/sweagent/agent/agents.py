@@ -445,6 +445,7 @@ class Agent:
     @property
     def local_history(self) -> list[dict[str, str]]:
         """Return the history of the agent since the last reset."""
+        # TODO handle the history of the agent. make sure that it will only include the agent's messages for the current instance
         return self.config.history_processor([entry for entry in self.history if entry["agent"] == self.name])
 
     def _get_total_stats(self) -> APIStats:

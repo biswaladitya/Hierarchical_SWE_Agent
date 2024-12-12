@@ -27,6 +27,9 @@ If you think the most recent interaction appropriately solves the task, you can 
 # TODO Optimize this prompt
 # TODO which kind of agents do we need that the org agent can work with?
 
+# TODO improve the edit and other used commands to be more agent friendly
+
+# TODO Experiment with the organization agent. Find out if multiple sub_agents are helpful or if one agent can do the job.
 
 class OrgAgent:
 
@@ -35,8 +38,20 @@ class OrgAgent:
         self.args = args
         self.available_agents = {
             "coder": {
-                "agent": Agent(self.name, self.args),
+                "agent": Agent('coder_sub_agent', self.args),
                 "description": "Agent to code the solution with environment access",
+            },
+            "tester": {
+                "agent": Agent('tester_sub_agent', self.args),
+                "description": "Agent focussed on testing the solution with full environment access",
+            },
+            "reviewer": {
+                "agent": Agent('reviewer_sub_agent', self.args),
+                "description": "Agent to review the code and provide feedback",
+            },
+            'planner': {
+                "agent": Agent('planner_sub_agent', self.args),
+                "description": "Agent to plan the solution and create a roadmap",
             },
         }
         self.prompt = None
