@@ -146,7 +146,7 @@ class MainHook:
         Or are we just submitting the last patch we generated before hitting an error?
         """
         # The exit status can also be `submitted (exit_cost)` etc.
-        return info["exit_status"] == "submitted" and info.get("submission") is not None
+        return ('exit_orga' in info["exit_status"] or 'submit' in info['exit_status']) and info.get("submission") is not None
 
     def on_init(self, *, args: ScriptArguments, agent: Agent, env: SWEEnv, traj_dir: Path):
         """Called when hook is initialized"""

@@ -184,7 +184,13 @@ class OrgAgent:
                     # TODO implement a collective AgentInfo object that collects the info from all agents: Every Agent tool call will return that.
                     # We have to look into how to combine those. Could be helpful for stats or something
                     # Info contains stuff like how many tokens have been called, estimated price, etc.
-                    env.step('exit_orga')
+                    obs, _, _, info = env.step('exit_orga')
+                    for key in ['edited_files30', 'edited_files50', 'edited_files70', 'exit_status', 'submission']:
+                        if key in info:
+                            combined_info[key] = info[key]
+                    # TODO Find out if there is other stuff from the submission info that we need to save
+
+
                     break
 
         return combined_info, combined_trajectory
