@@ -20,7 +20,7 @@ Then you can choose an agent to run the task.
 Start by writing down your considerations about the status of the project and the task that needs to be done.
 CONSIDERATIONS: ...
 NEXT STEPS...
-Then write down the next specific sub-task that needs to be done and choose an agent to run the task using the provided function call. Specify a relevant definition of done.
+Then write down the next specific sub-task that needs to be done and choose an agent to run the task using the provided function call. Specify a relevant definition of done which is super specific and define that the sub agents should not work on more than this specific task. Provide the agents with the relevant files to work on.
 This subtask is only one step in the process of solving the issue. After the called agent will return the result, you can decide on the next subtask and continue to call agents (the same or others) until the issue is solved.
 If you think the most recent interaction appropriately solves the task, you can end the conversation by writing DONE. Otherwise please always provide a new subtask to be done and call a relevant agent to run it.
 """
@@ -178,8 +178,8 @@ class OrgAgent:
                     # TODO handle trajectory. Is that necessary? What is it, how to combine, what for? Kinda done by the following line
                     combined_trajectory.extend(recent_trajectory)
                     messages.append({"role": "tool", "content": summary, "tool_call_id": tool_call.id})
-            if chat.choices[-1].finish_reason == "stop":
-                if "DONE" in chat.choices[-1].message.content:
+            if choice.finish_reason == "stop":
+                if "DONE" in choice.message.content:
                     # TODO add a check if the task is done and what then? Calling the env submit function?
                     # TODO implement a collective AgentInfo object that collects the info from all agents: Every Agent tool call will return that.
                     # We have to look into how to combine those. Could be helpful for stats or something
