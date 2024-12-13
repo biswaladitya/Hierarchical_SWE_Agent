@@ -950,8 +950,8 @@ class Agent:
             # Normal command, not a subroutine
             for hook in self.hooks:
                 hook.on_sub_action_started(sub_action=sub_action)
-            if sub_action["cmd_name"] == self.config.submit_command and self.name != "primary":
-                # primary is the only agent that can submit as it is not part of the org framework
+            if sub_action["cmd_name"] == self.config.submit_command and self.config.is_org_agent:
+                # Within the org agent framework the agents should only submit using 'DONE' keyword
                 return 'DONE', True
             observation, _, done, _info = self._env.step(sub_action["action"])
             observation, additional_cost = self.config.summarizer_config.function(  # type: ignore
