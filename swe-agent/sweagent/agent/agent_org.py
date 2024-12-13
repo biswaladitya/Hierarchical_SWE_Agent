@@ -171,7 +171,7 @@ class OrgAgent:
                         observation=observation,
                         traj_dir=traj_dir,
                         return_type="summary",
-                        init_model_stats=combined_info['model_stats'],
+                        init_model_stats=combined_info['model_stats'], # Actually a good question if the api costs for instance are handled correctlyt.
                     )
                     combined_info["model_stats"] = APIStats(**recent_info["model_stats"])
                     print("TOOL AGENT", summary)

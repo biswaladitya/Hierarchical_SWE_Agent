@@ -50,6 +50,7 @@ class Subroutine(FrozenSerializable):
 class AgentConfig(FrozenSerializable):
     system_template: str
     instance_template: str
+    is_org_agent: bool = False
     next_step_template: str | None = None  # defaults to instance_template
     next_step_no_output_template: str | None = None  # defaults to next_step_template
     strategy_template: str | None = None
@@ -150,7 +151,7 @@ class AgentConfig(FrozenSerializable):
             self,
             "command_docs",
             self.parse_command.generate_command_docs(
-                self._commands,
+                self._commands if not self.is_org_agent else list(filter(lambda cmd: cmd.name != 'submit', self._commands)),
                 self.subroutine_types,
                 **self.env_variables,
             ),
@@ -406,11 +407,12 @@ class Agent:
                 # Load history
                 self.logger.info(f"DEMONSTRATION: {demonstration_path}")
                 demo_history = json.loads(Path(demonstration_path).read_text())["history"]
-                demo_history = [
-                    entry
-                    for entry in demo_history
-                    if ("agent" not in entry) or ("agent" in entry and entry["agent"] == self.name)
-                ]
+                # Following unnecessary as always demo tagged for primary
+                #demo_history = [
+                #    entry
+                #    for entry in demo_history
+                #    if ("agent" not in entry) or ("agent" in entry and entry["agent"] == self.name)
+                #]
 
                 if self.config.put_demos_in_history:
                     if self.config.demonstration_template is not None:
@@ -948,6 +950,9 @@ class Agent:
             # Normal command, not a subroutine
             for hook in self.hooks:
                 hook.on_sub_action_started(sub_action=sub_action)
+            if sub_action["cmd_name"] == self.config.submit_command and self.name != "primary":
+                # primary is the only agent that can submit as it is not part of the org framework
+                return 'DONE', True
             observation, _, done, _info = self._env.step(sub_action["action"])
             observation, additional_cost = self.config.summarizer_config.function(  # type: ignore
                 sub_action["action"], observation, self._env, self.summarizer_model
@@ -992,7 +997,7 @@ class Agent:
         observations: list[str | None] = list()
         execution_t0 = time.perf_counter()
         for sub_action in self.split_actions(run_action):
-            if sub_action["cmd_name"] == self.config.submit_command or 'submit' == sub_action['action'][:6]:
+            if 'DONE' in action:
                 done = True
             if not done or self.name == 'primary':
                 # primary is the only agent that can submit as it is not part of the org framework
@@ -1068,7 +1073,7 @@ class Agent:
         if "task" in setup_args:
             self.history.append(
                 {
-                    "agent": "primary",
+                    "agent": self.name,
                     "content": setup_args["task"],
                     "role": "system",
                     "is_demo": False,
