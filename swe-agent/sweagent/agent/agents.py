@@ -1075,7 +1075,7 @@ class Agent:
                 }
             )
         self.logger.info("Trajectory will be saved to %s", self.traj_path)
-
+        self._env.cd_to_repo() # The beginning of the run should always start in the repo
         # Run action/observation loop
         for hook in self.hooks:
             hook.on_run_start()

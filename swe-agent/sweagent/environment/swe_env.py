@@ -315,6 +315,14 @@ class SWEEnv(gym.Env):
             )
         return self._repo_name
 
+    def cd_to_repo(self) -> None:
+        """Change directory to the repository"""
+        assert self.container_obj is not None
+        self.communicate_with_handling(
+            input=f"cd /{self._repo_name}",
+            error_msg=f"Failed to change directory to /{self._repo_name}",
+        )
+
     def reset(self, index: int | None = None, apply_test_patch: bool = False) -> tuple[str | None, dict]:
         """
         Function to reset container between each task instance.
