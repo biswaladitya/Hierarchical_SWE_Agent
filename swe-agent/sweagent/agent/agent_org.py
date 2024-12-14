@@ -132,7 +132,7 @@ class OrgAgent:
         ]
 
         combined_info = {
-            "model_stats": init_model_stats or APIStats(),
+            "model_stats": APIStats(total_cost=init_model_stats.total_cost) if init_model_stats else APIStats(),
         }
 
         combined_trajectory = []

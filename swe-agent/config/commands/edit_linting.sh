@@ -4,7 +4,7 @@
 #   <replacement_text>
 #   end_of_edit
 # end_name: end_of_edit
-# docstring: replaces lines <start_line> through <end_line> (exclusive) in the open file with the given text (not necessarily the same length). The replacement text is terminated by a line with only end_of_edit on it. All of the <replacement text> will be entered, so make sure your indentation is formatted properly. Python files will be checked for syntax errors after the edit. If the system detects a syntax error, the edit will not be executed. Remember that the lines are replaced by the new content, so make sure to incorporate all previously existing lines which are still required in your edit. Check for indentation. Remember that line numbers can change due to an edit.
+# docstring: replaces lines <start_line>(inclusive) through <end_line> (exclusive) in the open file with the given text (not necessarily the same length). The replacement text is terminated by a line with only end_of_edit on it. All of the <replacement text> will be entered, so make sure your indentation is formatted properly. Python files will be checked for syntax errors after the edit. If the system detects a syntax error, the edit will not be executed. Remember that the lines are replaced by the new content, so make sure to incorporate all previously existing lines which are still required in your edit. Check for indentation. Remember that line numbers can change due to an edit.
 # arguments:
 #   start_line:
 #     type: integer

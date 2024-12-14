@@ -1109,11 +1109,11 @@ class Agent:
                     "content": "Please summarize the history of your interaction and the findings which are relevant for solving the issue and other agents that will continue to work on it."
                                "Your part of working on this is done, therefore you should include all relevant information in the summary for others to base their work on this."
                     "Include all findings in your summary, even though you might have written them down somewhere else already, and mention the files that you worked on specifically."
-                               + f'This agent has been stopped due to to many iterations.' if (i >= 30) and not done else ''
+                               + (f'This agent has been stopped due to to many iterations.' if (i >= 30) and not done else '')
                     + f"The task for this was: {setup_args['task']}"
                     "Use precise language and provide a clear and concise summary."
-                    "Expected format: TOUCHED: <files>, FOUND: <findings>, DONE: <actions>, NEXT: <next steps>",
-                    "agent": "primary",
+                    "Append a summary in the following format: TOUCHED: <files>, FOUND: <findings>, DONE: <actions>, NEXT: <next steps>",
+                    "agent": self.name,
                 }
             )
             summary = self.model.query(self.local_history)
