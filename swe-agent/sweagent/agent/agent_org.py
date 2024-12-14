@@ -31,6 +31,7 @@ If you think the most recent interaction appropriately solves the task, you can 
 
 # TODO Experiment with the organization agent. Find out if multiple sub_agents are helpful or if one agent can do the job.
 
+
 class OrgAgent:
 
     def __init__(self, name, args: AgentArguments):
@@ -38,19 +39,19 @@ class OrgAgent:
         self.args = args
         self.available_agents = {
             "coder": {
-                "agent": Agent('coder_sub_agent', self.args),
+                "agent": Agent("coder_sub_agent", self.args),
                 "description": "Agent to code the solution with environment access",
             },
             "tester": {
-                "agent": Agent('tester_sub_agent', self.args),
+                "agent": Agent("tester_sub_agent", self.args),
                 "description": "Agent focussed on testing the solution with full environment access",
             },
             "reviewer": {
-                "agent": Agent('reviewer_sub_agent', self.args),
+                "agent": Agent("reviewer_sub_agent", self.args),
                 "description": "Agent to review the code and provide feedback",
             },
-            'planner': {
-                "agent": Agent('planner_sub_agent', self.args),
+            "planner": {
+                "agent": Agent("planner_sub_agent", self.args),
                 "description": "Agent to plan the solution and create a roadmap",
             },
         }
@@ -72,7 +73,10 @@ class OrgAgent:
         """
         self.prompt = org_agent_prompt.format(
             available_agents=", ".join(
-                [agent_name + ": " + agent["description"] for agent_name, agent in self.available_agents.items()]
+                [
+                    agent_name + ": " + agent["description"]
+                    for agent_name, agent in self.available_agents.items()
+                ]
             ),
             issue_description=setup_args["issue"],
         )
@@ -98,7 +102,10 @@ class OrgAgent:
                             "agent": {
                                 "type": "string",
                                 "description": "The agent to call",
-                                "enum": [agent_name for agent_name in self.available_agents.keys()],
+                                "enum": [
+                                    agent_name
+                                    for agent_name in self.available_agents.keys()
+                                ],
                             },
                             "task": {
                                 "type": "string",
@@ -139,11 +146,17 @@ class OrgAgent:
             messages.append(choice.message)
             print("ORGANIZATION AGENT", choice.message.content)
             combined_info["model_stats"] += APIStats(
-                api_calls = 1 ,
-                tokens_sent= chat.usage.prompt_tokens ,
-                tokens_received = chat.usage.completion_tokens,
-                instance_cost = (chat.usage.prompt_tokens * 0.00000015 + chat.usage.completion_tokens * 0.0000006),
-                total_cost= (chat.usage.prompt_tokens * 0.00000015 + chat.usage.completion_tokens * 0.0000006),
+                api_calls=1,
+                tokens_sent=chat.usage.prompt_tokens,
+                tokens_received=chat.usage.completion_tokens,
+                instance_cost=(
+                    chat.usage.prompt_tokens * 0.00000015
+                    + chat.usage.completion_tokens * 0.0000006
+                ),
+                total_cost=(
+                    chat.usage.prompt_tokens * 0.00000015
+                    + chat.usage.completion_tokens * 0.0000006
+                ),
             )
             if choice.finish_reason == "tool_calls":
                 tool_calls = choice.message.tool_calls
@@ -155,41 +168,60 @@ class OrgAgent:
                     setup_args["current_status"] = arguments["current_status"]
                     setup_args["task"] = arguments["task"]
                     setup_args["definition_of_done"] = arguments["definition_of_done"]
-                    combined_trajectory.append(TrajectoryStep(
-                        {
-                            "action": str(arguments),
-                            "observation": choice.message.content,
-                            "response": None,
-                            "state": None,
-                            "thought": None,
-                            "execution_time": 0,
-                        },
-                    ))
-                    recent_info, recent_trajectory, summary = agent_to_call["agent"].run(
+                    combined_trajectory.append(
+                        TrajectoryStep(
+                            {
+                                "action": str(arguments),
+                                "observation": choice.message.content,
+                                "response": None,
+                                "state": None,
+                                "thought": None,
+                                "execution_time": 0,
+                            },
+                        )
+                    )
+                    recent_info, recent_trajectory, summary = agent_to_call[
+                        "agent"
+                    ].run(
                         setup_args,
                         env,
                         observation=observation,
                         traj_dir=traj_dir,
                         return_type="summary",
-                        init_model_stats=combined_info['model_stats'], # Actually a good question if the api costs for instance are handled correctlyt.
+                        init_model_stats=combined_info[
+                            "model_stats"
+                        ],  # Actually a good question if the api costs for instance are handled correctlyt.
                     )
-                    combined_info["model_stats"] = APIStats(**recent_info["model_stats"])
+                    combined_info["model_stats"] = APIStats(
+                        **recent_info["model_stats"]
+                    )
                     print("TOOL AGENT", summary)
                     # TODO handle trajectory. Is that necessary? What is it, how to combine, what for? Kinda done by the following line
                     combined_trajectory.extend(recent_trajectory)
-                    messages.append({"role": "tool", "content": summary, "tool_call_id": tool_call.id})
+                    messages.append(
+                        {
+                            "role": "tool",
+                            "content": summary,
+                            "tool_call_id": tool_call.id,
+                        }
+                    )
             if choice.finish_reason == "stop":
                 if "DONE" in choice.message.content:
                     # TODO add a check if the task is done and what then? Calling the env submit function?
                     # TODO implement a collective AgentInfo object that collects the info from all agents: Every Agent tool call will return that.
                     # We have to look into how to combine those. Could be helpful for stats or something
                     # Info contains stuff like how many tokens have been called, estimated price, etc.
-                    obs, _, _, info = env.step('exit_orga')
-                    for key in ['edited_files30', 'edited_files50', 'edited_files70', 'exit_status', 'submission']:
+                    obs, _, _, info = env.step("exit_orga")
+                    for key in [
+                        "edited_files30",
+                        "edited_files50",
+                        "edited_files70",
+                        "exit_status",
+                        "submission",
+                    ]:
                         if key in info:
                             combined_info[key] = info[key]
                     # TODO Find out if there is other stuff from the submission info that we need to save
-
 
                     break
 
