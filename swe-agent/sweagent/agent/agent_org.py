@@ -10,6 +10,8 @@ from sweagent.environment.swe_env import SWEEnv
 from sweagent.types import TrajectoryStep
 from sweagent.utils.config import keys_config
 
+# This prompt defines the role and responsibilities of the organization agent,
+# instructing it to iteratively coordinate subtasks and delegate them to sub-agents.
 org_agent_prompt = """
 You are an agent to organize a team of agents to solve a task within a project. 
 The task is to solve the following issue within a code base {issue_description}.
@@ -32,11 +34,14 @@ If you think the most recent interaction appropriately solves the task, you can 
 # TODO Experiment with the organization agent. Find out if multiple sub_agents are helpful or if one agent can do the job.
 
 
+# Defines the OrgAgent class to coordinate tasks and delegate them to specialized sub-agents.
 class OrgAgent:
 
     def __init__(self, name, args: AgentArguments):
+        # Initialize the organization agent with a name and arguments.
         self.name = name
         self.args = args
+        # Dictionary of available sub-agents, each with a specific role and functionality.
         self.available_agents = {
             "coder": {
                 "agent": Agent("coder_sub_agent", self.args),
@@ -55,7 +60,7 @@ class OrgAgent:
                 "description": "Agent to plan the solution and create a roadmap",
             },
         }
-        self.prompt = None
+        self.prompt = None  # Placeholder for the dynamically generated prompt.
 
     def run(
         self,
@@ -67,10 +72,21 @@ class OrgAgent:
         init_model_stats: APIStats = None,
     ):
         """
-        Run an organization agent to organize a team of agents to solve a task within a project.
+        Run the organization agent to coordinate a team of agents to solve a task.
         For this to accurately work, set the --config_file arg to the config/default_org_agent.yaml file or use the preconfigured run_config in intelliJ
 
+
+        Parameters:
+        - setup_args: Contains task setup details.
+        - env: The SWE environment in which the agents operate.
+        - observation: Optional initial observation.
+        - traj_dir: Optional directory for saving trajectory data.
+        - return_type: Specifies the type of data to return.
+        - init_model_stats: Initial stats for tracking API usage and costs.
+
+        This method organizes tasks by breaking them into subtasks and delegating them to sub-agents.
         """
+        # Generate the dynamic prompt based on the issue description and available agents.
         self.prompt = org_agent_prompt.format(
             available_agents=", ".join(
                 [
@@ -80,15 +96,17 @@ class OrgAgent:
             ),
             issue_description=setup_args["issue"],
         )
+        # Initialize OpenAI client with the API key from environ.
         client = OpenAI(
             api_key=keys_config["OPENAI_API_KEY"],
         )
+        # Define the toolset for agent delegation.
         tools = [
             {
                 "type": "function",
                 "function": {
                     "name": "call_agents",
-                    "description": "This function let's you call agents to solve a task."
+                    "description": "This function lets you call agents to solve a task. "
                     "Available agents are:"
                     + ", ".join(
                         [
@@ -113,7 +131,7 @@ class OrgAgent:
                             },
                             "current_status": {
                                 "type": "string",
-                                "description": "An extensive description of the current status of the issue solving process.",
+                                "description": "An extensive description of the current status of the issue-solving process.",
                             },
                             "definition_of_done": {
                                 "type": "string",
@@ -124,19 +142,25 @@ class OrgAgent:
                 },
             }
         ]
+        # Start the conversation with the organization agent's system message.
         messages = [
             {
                 "role": "system",
                 "content": self.prompt,
             }
         ]
-
+        # Initialize variables for tracking API usage and trajectory data.
         combined_info = {
-            "model_stats": APIStats(total_cost=init_model_stats.total_cost) if init_model_stats else APIStats(),
+            "model_stats": (
+                APIStats(total_cost=init_model_stats.total_cost)
+                if init_model_stats
+                else APIStats()
+            ),
         }
-
         combined_trajectory = []
+
         while True:
+            # Interact with the OpenAI model, using the tools and messages defined.
             chat = client.chat.completions.create(
                 messages=messages,
                 model="gpt-4o-mini",
@@ -145,6 +169,8 @@ class OrgAgent:
             choice = chat.choices[0]
             messages.append(choice.message)
             print("ORGANIZATION AGENT", choice.message.content)
+
+            # Update API usage statistics.
             combined_info["model_stats"] += APIStats(
                 api_calls=1,
                 tokens_sent=chat.usage.prompt_tokens,
@@ -158,12 +184,15 @@ class OrgAgent:
                     + chat.usage.completion_tokens * 0.0000006
                 ),
             )
+
             if choice.finish_reason == "tool_calls":
+                # Handle tool calls by parsing arguments and invoking the appropriate sub-agent.
                 tool_calls = choice.message.tool_calls
                 for tool_call in tool_calls:
                     arguments = json.loads(tool_call.function.arguments)
                     agent_to_call = self.available_agents[arguments["agent"]]
 
+                    # Set up arguments for the sub-agent and track its execution.
                     setup_args["agent_description"] = agent_to_call["description"]
                     setup_args["current_status"] = arguments["current_status"]
                     setup_args["task"] = arguments["task"]
@@ -180,6 +209,7 @@ class OrgAgent:
                             },
                         )
                     )
+                    # Run the sub-agent and collect its output.
                     recent_info, recent_trajectory, summary = agent_to_call[
                         "agent"
                     ].run(
@@ -188,15 +218,12 @@ class OrgAgent:
                         observation=observation,
                         traj_dir=traj_dir,
                         return_type="summary",
-                        init_model_stats=combined_info[
-                            "model_stats"
-                        ],  # Actually a good question if the api costs for instance are handled correctlyt.
+                        init_model_stats=combined_info["model_stats"],
                     )
                     combined_info["model_stats"] = APIStats(
                         **recent_info["model_stats"]
                     )
                     print("TOOL AGENT", summary)
-                    # TODO handle trajectory. Is that necessary? What is it, how to combine, what for? Kinda done by the following line
                     combined_trajectory.extend(recent_trajectory)
                     messages.append(
                         {
@@ -205,12 +232,10 @@ class OrgAgent:
                             "tool_call_id": tool_call.id,
                         }
                     )
+
             if choice.finish_reason == "stop":
                 if "DONE" in choice.message.content:
-                    # TODO add a check if the task is done and what then? Calling the env submit function?
-                    # TODO implement a collective AgentInfo object that collects the info from all agents: Every Agent tool call will return that.
-                    # We have to look into how to combine those. Could be helpful for stats or something
-                    # Info contains stuff like how many tokens have been called, estimated price, etc.
+                    # Handle the completion of the task and collect final stats and observations.
                     obs, _, _, info = env.step("exit_orga")
                     for key in [
                         "edited_files30",
@@ -221,8 +246,6 @@ class OrgAgent:
                     ]:
                         if key in info:
                             combined_info[key] = info[key]
-                    # TODO Find out if there is other stuff from the submission info that we need to save
-
                     break
 
         return combined_info, combined_trajectory
